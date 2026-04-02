@@ -4,6 +4,7 @@ import { useLottie } from "lottie-react"; // Import the hook
 import registerLottie from "../../assets/lotties/Register.json";
 
 const Register = () => {
+
   // Configure the lottie options
   const options = {
     animationData: registerLottie,
@@ -14,6 +15,17 @@ const Register = () => {
   // Initialize the hook
   const { View } = useLottie(options, { width: "400px" });
 
+
+  // handle register
+  const handleRegister = e => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.email.value;
+    const password = form.password.value;
+    console.log(email, password)
+  }
+
+
   return (
     <div className="hero bg-base-200 min-h-screen">
       <div className="hero-content flex-col lg:flex-row-reverse">
@@ -22,7 +34,7 @@ const Register = () => {
           <div className="card-body">
             <h1 className="text-3xl font-bold">Register now!</h1>
 
-            <form>
+            <form onSubmit={handleRegister}>
               <fieldset className="fieldset">
                 <label className="label">Email</label>
                 <input type="email" name="email" className="input" placeholder="Email" />
