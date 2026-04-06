@@ -1,7 +1,9 @@
-import React from "react";
+import React, { use } from "react";
 
 import { useLottie } from "lottie-react"; // Import the hook
 import registerLottie from "../../assets/lotties/Register.json";
+import { AuthContext } from "../../contexts/AuthContext/AuthContext";
+import SocialLogin from "../Shared/SocialLogin";
 
 const Register = () => {
 
@@ -15,6 +17,9 @@ const Register = () => {
   // Initialize the hook
   const { View } = useLottie(options, { width: "400px" });
 
+  // useContext
+  const {createUser} = use(AuthContext)
+
 
   // handle register
   const handleRegister = e => {
@@ -23,6 +28,15 @@ const Register = () => {
     const email = form.email.value;
     const password = form.password.value;
     console.log(email, password)
+
+    // create user
+    createUser(email, password)
+    .then(result => {
+      console.log(result.user)
+    })
+    .catch(error => {
+      console.log(error)
+    })
   }
 
 
@@ -51,6 +65,7 @@ const Register = () => {
                 <button className="btn btn-neutral mt-4">Register</button>
               </fieldset>
             </form>
+            <SocialLogin></SocialLogin>
           </div>
         </div>
       </div>
