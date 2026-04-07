@@ -1,9 +1,10 @@
+import { use } from "react"
 import JobsCard from "../Shared/JobsCard"
 
 
-const HotJobs = ({jobs}) => {
+const HotJobs = ({jobPromise}) => {
 
-
+  const jobs = use(jobPromise);
   return (
     <div>
       <h2 className="text-4xl">Hot Jobs The Day</h2>
