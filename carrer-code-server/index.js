@@ -32,6 +32,7 @@ async function run() {
     await client.connect();
 
     const jobCollection = client.db("carrerCode").collection("jobs");
+    const applicationsCollection = client.db("carrerCode").collection("applications");
 
     // jobs api
     app.get("/jobs", async (req, res) => {
@@ -44,6 +45,27 @@ async function run() {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
       const result = await jobCollection.findOne(query)
+      res.send(result)
+    });
+
+
+    // job applications related apis
+
+    app.get("/applications", async(req, res) => {
+      const email = req.query.email;
+
+      const query = {
+        applicant: email
+      }
+
+      const result = await applicationsCollection.find(query).toArray()
+      res.send(result);
+    })
+
+    app.post("/applications", async (req, res) => {
+      const application = req.body;
+      console.log(application)
+      const result = await applicationsCollection.insertOne(application);
       res.send(result)
     })
       
