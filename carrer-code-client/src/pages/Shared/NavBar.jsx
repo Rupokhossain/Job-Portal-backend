@@ -7,19 +7,27 @@ const NavBar = () => {
 
   const handleSignOut = () => {
     signOutUser()
-    .then(() => {
-      console.log("signed out user")
-    })
-    .catch(error => {
-      console.log(error)
-    })
-  }
+      .then(() => {
+        console.log("signed out user");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const links = (
     <>
       <li>
         <NavLink to="/">Home</NavLink>
       </li>
+
+      {user && (
+        <>
+          <li>
+            <NavLink to="/myApplications">My Applications</NavLink>
+          </li>
+        </>
+      )}
     </>
   );
 
@@ -63,7 +71,9 @@ const NavBar = () => {
       </div>
       <div className="navbar-end">
         {user ? (
-          <button onClick={handleSignOut} className="btn">Sign Out</button>
+          <button onClick={handleSignOut} className="btn">
+            Sign Out
+          </button>
         ) : (
           <>
             <NavLink className="btn" to="/register">
