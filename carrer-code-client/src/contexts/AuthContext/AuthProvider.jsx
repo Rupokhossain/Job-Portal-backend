@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import { auth } from "../../firebase/firebase.init";
+import axios from "axios";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -17,32 +25,43 @@ const AuthProvider = ({ children }) => {
   // signIn
   const signInUser = (email, password) => {
     setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password)
-  }
+    return signInWithEmailAndPassword(auth, email, password);
+  };
 
   // sign out
   const signOutUser = () => {
     setLoading(true);
-    return signOut(auth)
-  }
+    return signOut(auth);
+  };
 
   // signInWithGoogle
   const signInWithGoogle = () => {
-    setLoading(true)
-    return signInWithPopup(auth, googleProvider)
-  }
+    setLoading(true);
+    return signInWithPopup(auth, googleProvider);
+  };
 
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, currentUser => {
+    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false)
-      console.log("user in the auth state change", currentUser)
-    })
+      setLoading(false);
+
+      if (currentUser?.email) {
+        const userData = { email: currentUser.email };
+        axios.post("http://localhost:5000/jwt", userData, {
+          withCredentials: true
+        })
+        .then(res => {
+          console.log(res.data)
+        })
+        .catch(error => console.log(error))
+      }
+
+      console.log("user in the auth state change", currentUser);
+    });
     return () => {
       unSubscribe();
-    }
-
-  }, [])
+    };
+  }, []);
 
   const authInfo = {
     loading,
@@ -50,7 +69,7 @@ const AuthProvider = ({ children }) => {
     createUser,
     signInUser,
     signOutUser,
-    signInWithGoogle
+    signInWithGoogle,
   };
 
   return <AuthContext value={authInfo}>{children}</AuthContext>;
