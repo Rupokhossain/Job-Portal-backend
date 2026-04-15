@@ -20,11 +20,14 @@ app.use(cookieParser());
 
 var admin = require("firebase-admin");
 
-var serviceAccount = require("./firebase-admin-key.json");
+var admin = require("firebase-admin");
+
+var serviceAccount = require("./firebase-api.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccount)
 });
+
 
 const logger = (req, res, next) => {
   console.log("inside the logger middleware");
