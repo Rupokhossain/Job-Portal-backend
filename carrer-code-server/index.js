@@ -18,6 +18,14 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+var admin = require("firebase-admin");
+
+var serviceAccount = require("./firebase-admin-key.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 const logger = (req, res, next) => {
   console.log("inside the logger middleware");
   next();
@@ -25,15 +33,10 @@ const logger = (req, res, next) => {
 
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
-  console.log("cookie in the middleware", req.cookies);
-
   if (!token) {
-    return res
-      .status(401)
-      .send({ message: "Unauthorized access. No token provided." });
+    return res.status(401).send({ message: "Unauthorized access." });
   }
 
-  // verify token
   jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decoded) => {
     if (err) {
       return res
@@ -43,6 +46,19 @@ const verifyToken = (req, res, next) => {
     req.decoded = decoded;
     next();
   });
+};
+
+const verfyFirebaseToken = async (req, res, next) => {
+  const authHeader = req?.headers?.authorization;
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res
+      .status(401)
+      .send({ message: "Unauthorized access. No token provided." });
+  }
+  const userInfo = await admin.auth().verifyIdToken(token);
+  req.tokenEmail = userInfo.email;
+  next();
 };
 
 // const uri =`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster01.4eony5i.mongodb.net/?appName=Cluster01`;
@@ -71,19 +87,19 @@ async function run() {
       .collection("applications");
 
     //jwt token related api
-    app.post("/jwt", (req, res) => {
-      const userData = req.body;
-      const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, {
-        expiresIn: "1d",
+    app.post("/jwt", async (req, res) => {
+      const userInfo = req.body;
+
+      const token = jwt.sign(userInfo, process.env.JWT_ACCESS_SECRET, {
+        expiresIn: "2h",
       });
 
-      // set token in the cookies
       res.cookie("token", token, {
         httpOnly: true,
         secure: false,
       });
 
-      res.send({ token });
+      res.send({ success: true });
     });
 
     // jobs api
@@ -124,33 +140,42 @@ async function run() {
 
     // job applications related apis
 
-    app.get("/applications", logger, verifyToken, async (req, res) => {
-      const email = req.query.email;
+    app.get(
+      "/applications",
+      logger,
+      verifyToken,
+      verfyFirebaseToken,
+      async (req, res) => {
+        const email = req.query.email;
 
-      // console.log("inside applications api", req.cookies)
-      if(email !== req.decoded.email) {
-        return res.status(403).send({message: "Forbidden access"})
-      }
+        // console.log("inside applications api", req.cookies)
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: "Forbidden access" });
+        }
 
+        if(req.tokenEmail !== email) {
+          return res.status(403).send({message: "Forbidden access. Email mismatch."})
+        }
 
-      const query = {
-        applicant: email,
-      };
+        const query = {
+          applicant: email,
+        };
 
-      const result = await applicationsCollection.find(query).toArray();
+        const result = await applicationsCollection.find(query).toArray();
 
-      // bad way to aggregate data
-      for (const application of result) {
-        const jobId = application.jobId;
-        const jobQuery = { _id: new ObjectId(jobId) };
-        const job = await jobCollection.findOne(jobQuery);
-        application.company = job.company;
-        application.title = job.title;
-        application.company_logo = job.company_logo;
-      }
+        // bad way to aggregate data
+        for (const application of result) {
+          const jobId = application.jobId;
+          const jobQuery = { _id: new ObjectId(jobId) };
+          const job = await jobCollection.findOne(jobQuery);
+          application.company = job.company;
+          application.title = job.title;
+          application.company_logo = job.company_logo;
+        }
 
-      res.send(result);
-    });
+        res.send(result);
+      },
+    );
 
     app.get("/applications/job/:job_id", async (req, res) => {
       const job_id = req.params.job_id;
