@@ -25,9 +25,8 @@ var admin = require("firebase-admin");
 var serviceAccount = require("./firebase-api.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
-
 
 const logger = (req, res, next) => {
   console.log("inside the logger middleware");
@@ -63,6 +62,36 @@ const verfyFirebaseToken = async (req, res, next) => {
   req.tokenEmail = userInfo.email;
   next();
 };
+
+
+const verifyTokenEmail = (req, res, next) => {
+  if(req.query.email !== req.decoded.email) {
+    return res.status(403).send({message: "forbidden access"});
+  }
+  next();
+};
+
+// recap
+// const verifyFireBaseToken = async (req, res, next) => {
+//   const authHeader = req?.headers?.authorization;
+
+//   if(!authHeader || !authHeader.startsWith("Bearer")) {
+//     return res.status(401).send({message: "Unauthorized Access"})
+//   }
+
+//   const token = authHeader.split(" ")[1];
+
+//   try {
+//     const decoded = await admin.auth().verifyIdToken(token);
+//     console.log("decoded token", decoded);
+//     req.decoded = decoded;
+
+//   next();
+//   } catch (error) {
+//     return res.status(401).send({message: "unauthorized access. Invalid token."})
+//   }
+
+// }
 
 // const uri =`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster01.4eony5i.mongodb.net/?appName=Cluster01`;
 
@@ -145,19 +174,19 @@ async function run() {
 
     app.get(
       "/applications",
-      logger,
-      verifyToken,
       verfyFirebaseToken,
+      verifyTokenEmail,
+      verifyToken,
       async (req, res) => {
         const email = req.query.email;
 
         // console.log("inside applications api", req.cookies)
-        if (email !== req.decoded.email) {
-          return res.status(403).send({ message: "Forbidden access" });
-        }
 
-        if(req.tokenEmail !== email) {
-          return res.status(403).send({message: "Forbidden access. Email mismatch."})
+
+        if (req.tokenEmail !== email) {
+          return res
+            .status(403)
+            .send({ message: "Forbidden access. Email mismatch." });
         }
 
         const query = {
