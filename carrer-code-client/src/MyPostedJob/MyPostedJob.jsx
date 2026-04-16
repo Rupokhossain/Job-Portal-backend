@@ -14,7 +14,7 @@ const MyPostedJob = () => {
       <h2>My Posted Jobs: </h2>
 
       <Suspense>
-        <JobLists jobsCreateByPromise={jobsCreateByPromise(user.email)}>
+        <JobLists jobsCreateByPromise={jobsCreateByPromise(user.email, user.accessToken)}>
 
         </JobLists>
       </Suspense>

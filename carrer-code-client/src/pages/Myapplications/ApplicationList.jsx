@@ -4,9 +4,11 @@ import JobApplicationRow from "./JobApplicationRow";
 const ApplicationList = ({ myApplicationsPromise }) => {
   const applications = use(myApplicationsPromise);
 
+
+
   return (
     <div>
-      <h3 className="text-3xl">Jobs Applied so far: {applications.length}</h3>
+      <h3 className="text-3xl">Jobs Applied so far: {applications?.length}</h3>
 
       <div className="overflow-x-auto">
         <table className="table">
@@ -25,17 +27,14 @@ const ApplicationList = ({ myApplicationsPromise }) => {
             </tr>
           </thead>
           <tbody>
-            
-            {
-                applications.map((application, index) => <JobApplicationRow
-                    key={application._id}
-                    index={index}
-                    application={application}
-                ></JobApplicationRow>)
-            }
-
+            {applications.map((application, index) => (
+              <JobApplicationRow
+                key={application._id}
+                index={index}
+                application={application}
+              ></JobApplicationRow>
+            ))}
           </tbody>
-
         </table>
       </div>
     </div>
