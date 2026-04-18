@@ -46,7 +46,7 @@ const AuthProvider = ({ children }) => {
       setLoading(false);
 
       if(currentUser?.email){
-        axios.post("http://localhost:5000/jwt", {email: currentUser.email}, {withCredentials: true})
+        axios.post("https://carrer-code-server-ten.vercel.app//jwt", {email: currentUser.email}, {withCredentials: true})
         .then(res => console.log(res.data))
         .catch(error => console.log(error))
       

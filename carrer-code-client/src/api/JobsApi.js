@@ -1,5 +1,5 @@
 export const jobsCreateByPromise = (email, accessToken) => {
-    return fetch(`http://localhost:5000/jobs?email=${email}`, {
+    return fetch(`https://carrer-code-server-ten.vercel.app//jobs?email=${email}`, {
         headers: {
             authorization: `Bearer ${accessToken}`,
         },

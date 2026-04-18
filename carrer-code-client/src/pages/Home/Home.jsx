@@ -5,7 +5,7 @@ import HotJobs from "./HotJobs";
 
 const Home = () => {
 
-  const jobPromise = fetch("http://localhost:5000/jobs").then(res => res.json())
+  const jobPromise = fetch("https://carrer-code-server-ten.vercel.app//jobs").then(res => res.json())
 
 
   return (
