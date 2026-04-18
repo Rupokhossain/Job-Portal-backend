@@ -11,7 +11,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ['https://carrer-code-f0a1f.web.app', 'http://localhost:5173'],
     credentials: true,
   }),
 );
@@ -20,9 +20,8 @@ app.use(cookieParser());
 
 var admin = require("firebase-admin");
 
-var admin = require("firebase-admin");
-
-var serviceAccount = require("./firebase-api.json");
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString("utf8")
+var serviceAccount = JSON.parse(decoded);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -63,10 +62,14 @@ const verfyFirebaseToken = async (req, res, next) => {
   next();
 };
 
-
 const verifyTokenEmail = (req, res, next) => {
-  if(req.query.email !== req.decoded.email) {
-    return res.status(403).send({message: "forbidden access"});
+
+  if(!req.decoded) {
+    return res.status(401).send({message: "Unauthorized"});
+  }
+
+  if (req.query.email !== req.decoded.email) {
+    return res.status(403).send({ message: "forbidden access" });
   }
   next();
 };
@@ -128,7 +131,8 @@ async function run() {
 
       res.cookie("token", token, {
         httpOnly: true,
-        secure: false,
+        secure: true,
+        sameSite: "none",
       });
 
       res.send({ success: true });
@@ -175,13 +179,12 @@ async function run() {
     app.get(
       "/applications",
       verfyFirebaseToken,
-      verifyTokenEmail,
       verifyToken,
+      verifyTokenEmail,
       async (req, res) => {
         const email = req.query.email;
 
         // console.log("inside applications api", req.cookies)
-
 
         if (req.tokenEmail !== email) {
           return res
@@ -237,10 +240,10 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!",
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!",
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
